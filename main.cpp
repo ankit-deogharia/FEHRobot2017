@@ -2,6 +2,8 @@
 #include <FEHIO.h>
 #include <FEHUtility.h>
 #include <FEHMotor.h>
+#include <FEHRPS.h>
+#include <math.h>
 
 #define DEFAULT_SPEED 25.0
 #define RPS_TOLERANCE 0.5
@@ -9,27 +11,6 @@
 //Motor declaration
 FEHMotor left_motor(FEHMotor::Motor0, 7.2); //Motor voltage subject to change!
 FEHMotor right_motor(FEHMotor::Motor1, 7.2);
-
-//
-
-int main(void)
-{
-
-    float x,y;
-
-    LCD.Clear( FEHLCD::DARKSLATEGRAY );
-    LCD.SetFontColor( FEHLCD::SCARLET );
-
-    while( true )
-    {
-        if( LCD.Touch(&x,&y) )
-        {
-            LCD.WriteLine( "Mitochondria is the powerhouse of the cell" );
-            Sleep( 100 );
-        }
-    }
-    return 0;
-}
 
 /**
  * @brief moveForwardBackrward Runs the robot forward or backward for a duration of time
@@ -53,8 +34,8 @@ void turnLeftRight(float speed, float time) {
     left_motor.SetPercent(speed * 100);
     right_motor.SetPercent(-speed * 100);
     Sleep(time);
-    left_motor.SetPercent(0);
-    right_motor.SetPercent(0);
+    left_motor.Stop();
+    right_motor.Stop();
 }
 
 /**
@@ -71,15 +52,58 @@ bool inRPSRange() {
  */
 void moveToPos(float x, float y) {
     bool atPos = false;
+    float xPos = RPS.X() - x,
+            yPos = RPS.Y() - y,
+            tolerance = 3.0,
+            startDistance = sqrt(xPos * xPos + yPos * yPos);
+    setOrientation(atan2(yPos, xPos));
     while (!atPos) {
-        
+        xPos = RPS.X() - x;
+        yPos = RPS.Y() - y;
+        float distance = sqrt(xPos * xPos + yPos * yPos),
+                ratio = distance/startDistance;
+        left_motor.SetPercent(DEFAULT_SPEED * ratio);
+        right_motor.SetPercent(DEFAULT_SPEED * ratio);
     }
 }
 
 /**
- * @brief changeOrientation Changes the orientation by the specified amount
- * @param angle The angle by which to rotate the robot.  Positive angles turn clockwise, negative angles turn counter-clockwise
+ * @brief setOrientation Sets the orientation to the specified angle
+ * @param angle The angle to turn the robot towards
  */
-void changeOrientation(float angle) {
-    
+void setOrientation(float angle) {
+    const float tolerance = 2.0, time = 2.5;
+    float start = TimeNow();
+    while (TimeNow() - start < time) {
+        if (abs(RPS.Heading() - angle) < tolerance) {
+            left_motor.Stop();
+            right_motor.Stop();
+        } else if (RPS.Heading() - angle < 180) {
+            left_motor.SetPercent(DEFAULT_SPEED);
+            right_motor.SetPercent(-DEFAULT_SPEED);
+        } else if (RPS.Heading() - angle > 180) {
+            left_motor.SetPercent(-DEFAULT_SPEED);
+            right_motor.SetPercent(DEFAULT_SPEED);
+        }
+    }
 }
+
+int main(void)
+{
+
+    float x,y;
+
+    LCD.Clear( FEHLCD::DARKSLATEGRAY );
+    LCD.SetFontColor( FEHLCD::SCARLET );
+
+    while( true )
+    {
+        if( LCD.Touch(&x,&y) )
+        {
+            LCD.WriteLine( "Mitochondria is the powerhouse of the cell" );
+            Sleep( 100 );
+        }
+    }
+    return 0;
+}
+
