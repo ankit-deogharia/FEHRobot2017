@@ -3,6 +3,9 @@
 #include <FEHUtility.h>
 #include <FEHMotor.h>
 
+#define DEFAULT_SPEED 25.0
+#define RPS_TOLERANCE 0.5
+
 //Motor declaration
 FEHMotor left_motor(FEHMotor::Motor0, 7.2); //Motor voltage subject to change!
 FEHMotor right_motor(FEHMotor::Motor1, 7.2);
@@ -54,4 +57,29 @@ void turnLeftRight(float speed, float time) {
     right_motor.SetPercent(0);
 }
 
+/**
+ * @brief inRPSRange Returns TRUE or FALSE whether the robot has valid RPS signal
+ */
+bool inRPSRange() {
+    return RPS.X() > 0 && RPS.Y() > 0;
+}
 
+/**
+ * @brief moveToPos Moves the robot to the specified position at DEFAULT_SPEED according to RPS
+ * @param x X-coordinate of desired position
+ * @param y Y-coordinate of desired position
+ */
+void moveToPos(float x, float y) {
+    bool atPos = false;
+    while (!atPos) {
+        
+    }
+}
+
+/**
+ * @brief changeOrientation Changes the orientation by the specified amount
+ * @param angle The angle by which to rotate the robot.  Positive angles turn clockwise, negative angles turn counter-clockwise
+ */
+void changeOrientation(float angle) {
+    
+}
