@@ -8,9 +8,44 @@
 #define DEFAULT_SPEED 25.0
 #define RPS_TOLERANCE 0.5
 
+bool stayOn = true;
+
 //Motor declaration
 FEHMotor left_motor(FEHMotor::Motor0, 7.2); //Motor voltage subject to change!
 FEHMotor right_motor(FEHMotor::Motor1, 7.2);
+
+//INTERFACE METHODS
+
+void menu() {
+    // declare an array of four icons called menu
+    FEHIcon::Icon iconMenu[4];
+
+    // define the four menu labels
+    char menu_labels[4][20] = {"TEST","RUN","QUIET","QUIT"};
+
+    // draw the menu in a 2 by 2 array with top and bottom
+    // margins of 10 and left and right margins of 5
+    // with the menu labels, gold borders, and green text
+    FEHIcon::DrawIconArray(iconMenu, 2, 2, 10, 10, 5, 5, menu_labels, BLACK, WHITE);
+
+    bool exit = true;
+    while (exit) {
+        int x, y;
+        if (iconMenu[0].Pressed(x, y, 1)) {
+            //Test method goes here
+        } else if (iconMenu[1].Pressed(x, y, 1)) {
+            exit = false;
+        } else if (iconMenu[2].Pressed(x, y, 0)) {
+            iconMenu[2].Select();
+            iconMenu.ChangeLabelString("VERBOSE");
+        } else if (iconMenu[3].Pressed(x, y, 0)) {
+            exit = false;
+            stayOn = false;
+        }
+    }
+}
+
+//FUNCTIONAL METHODS
 
 /**
  * @brief moveForwardBackrward Runs the robot forward or backward for a duration of time
@@ -96,13 +131,15 @@ int main(void)
     LCD.Clear( FEHLCD::DARKSLATEGRAY );
     LCD.SetFontColor( FEHLCD::SCARLET );
 
-    while( true )
+    while(stayOn)
     {
         if( LCD.Touch(&x,&y) )
         {
             LCD.WriteLine( "Mitochondria is the powerhouse of the cell" );
             Sleep( 100 );
         }
+
+
     }
     return 0;
 }
