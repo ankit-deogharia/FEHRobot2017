@@ -27,7 +27,7 @@ void menu() {
 
     // draw the menu in a 2 by 2 array with top and bottom
     // margins of 10 and left and right margins of 5
-    // with the menu labels, gold borders, and green text
+    // with the menu labels, black borders, and white text
     FEHIcon::DrawIconArray(iconMenu, 2, 2, 10, 10, 5, 5, menu_labels, BLACK, WHITE);
 
     bool exit = true;
@@ -161,22 +161,16 @@ void setOrientation(float angle) {
 
 int main(void)
 {
-
     float x,y;
 
     LCD.Clear( FEHLCD::DARKSLATEGRAY );
     LCD.SetFontColor( FEHLCD::SCARLET );
 
-    while(stayOn)
-    {
-        if( LCD.Touch(&x,&y) )
-        {
-            LCD.WriteLine( "Mitochondria is the powerhouse of the cell" );
-            Sleep( 100 );
-        }
-
-
+    menu();
+    while(stayOn) {
+        //General robot code goes here
     }
+
     return 0;
 }
 
