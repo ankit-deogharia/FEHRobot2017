@@ -2,6 +2,7 @@
 #include <FEHIO.h>
 #include <FEHUtility.h>
 #include <FEHMotor.h>
+#include <FEHServo.h>
 #include <FEHRPS.h>
 #include <math.h>
 
@@ -13,6 +14,7 @@ bool stayOn = true;
 //Motor declaration
 FEHMotor left_motor(FEHMotor::Motor0, 7.2); //Motor voltage subject to change!
 FEHMotor right_motor(FEHMotor::Motor1, 7.2);
+FEHMotor claw_servo(FEHServo::Servo1);
 
 //INTERFACE METHODS
 
@@ -32,17 +34,51 @@ void menu() {
     while (exit) {
         int x, y;
         if (iconMenu[0].Pressed(x, y, 1)) {
-            //Test method goes here
+            test();
         } else if (iconMenu[1].Pressed(x, y, 1)) {
+            LCD.WriteLine("Running robot program...");
             exit = false;
         } else if (iconMenu[2].Pressed(x, y, 0)) {
             iconMenu[2].Select();
             iconMenu.ChangeLabelString("VERBOSE");
         } else if (iconMenu[3].Pressed(x, y, 0)) {
+            LCD.WriteLine("Shutting off...");
+            Sleep(100);
             exit = false;
             stayOn = false;
         }
     }
+}
+
+void test() {
+    LCD.Clear();
+    left_motor.SetPercent(DEFAULT_SPEED);
+    LCD.WriteLine("Turning left motor forward...");
+    Sleep(1.0);
+
+    LCD.Clear();
+    left_motor.SetPercent(-DEFAULT_SPEED);
+    LCD.WriteLine("Turning left motor backward...");
+    Sleep(1.0);
+
+    LCD.Clear();
+    right_motor.SetPercent(DEFAULT_SPEED);
+    LCD.WriteLine("Turning right motor forward...");
+    Sleep(1.0);
+
+    LCD.Clear();
+    right_motor.SetPercent(DEFAULT_SPEED);
+    LCD.WriteLine("Turning right motor backward...");
+    Sleep(1.0);
+
+    LCD.Clear();
+    claw_motor.SetDegree(90);
+    LCD.WriteLine("Testing claw servo forward then backward...");
+    Sleep(1.0);
+    claw_motor.SetDegree(0);
+    Sleep(1.0);
+
+    LCD.Clear();
 }
 
 //FUNCTIONAL METHODS
