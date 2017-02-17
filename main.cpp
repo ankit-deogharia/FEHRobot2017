@@ -9,7 +9,7 @@
 #define DEFAULT_SPEED 25.0
 #define RPS_TOLERANCE 0.5
 
-bool stayOn = true;
+bool stayOn = true, verboseMode = false;
 
 //Motor declaration
 FEHMotor left_motor(FEHMotor::Motor0, 7.2); //Motor voltage subject to change!
@@ -39,11 +39,18 @@ void menu() {
             LCD.WriteLine("Running robot program...");
             exit = false;
         } else if (iconMenu[2].Pressed(x, y, 0)) {
-            iconMenu[2].Select();
-            iconMenu.ChangeLabelString("VERBOSE");
+            if (!verboseMode) {
+                iconMenu[2].Select();
+                iconMenu.ChangeLabelString("VERBOSE");
+                verboseMode = true;
+            } else {
+                iconMenu[2].Deselect();
+                iconMenu.ChangeLabelString("QUIET");
+                verboseMode = false;
+            }
         } else if (iconMenu[3].Pressed(x, y, 0)) {
             LCD.WriteLine("Shutting off...");
-            Sleep(100);
+            Sleep(1.);
             exit = false;
             stayOn = false;
         }
@@ -163,12 +170,14 @@ int main(void)
 {
     float x,y;
 
-    LCD.Clear( FEHLCD::DARKSLATEGRAY );
+    LCD.Clear();
+    LCD.SetBackgroundColor( FEHLCD::DARKSLATEGRAY );
     LCD.SetFontColor( FEHLCD::SCARLET );
 
     menu();
     while(stayOn) {
         //General robot code goes here
+        moveForwardBackward(DEFAULT_SPEED, 1.0);
     }
 
     return 0;
