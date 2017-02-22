@@ -60,6 +60,9 @@ void calibrate() {
         LCD.Write("Cds cell value: ");
         LCD.Write(Cds_cell.Value());
         Sleep(200);
+        if (Cds_cell.Value() > 1) {
+            LCD.WriteLine("Ready to go!");
+        }
     }
 }
 
@@ -174,12 +177,15 @@ void setOrientation(float angle) {
  * @param y Y-coordinate of desired position
  */
 void moveToPos(float x, float y) {
+    LCD.WriteLine("Starting moveToPos function...\n");
     bool atPos = false;
     float xPos = RPS.X() - x,
             yPos = RPS.Y() - y,
             tolerance = 3.0,
-            startDistance = sqrt(xPos * xPos + yPos * yPos);
-    setOrientation(atan2(yPos, xPos));
+            startDistance = sqrt(xPos * xPos + yPos * yPos),
+            angle = atan2(y - yPos, x - xPos);
+    LCD.WriteLine("Turning Angle: ");
+    setOrientation(angle);
     while (!atPos) {
         xPos = RPS.X() - x;
         yPos = RPS.Y() - y;
