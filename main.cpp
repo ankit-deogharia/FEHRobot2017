@@ -6,15 +6,18 @@
 #include <FEHRPS.h>
 #include <math.h>
 
-#define DEFAULT_SPEED 25.0
+#define DEFAULT_SPEED 10.0
 #define RPS_TOLERANCE 0.5
 
 bool stayOn = true, verboseMode = false;
 
 //Motor declaration
-FEHMotor left_motor(FEHMotor::Motor0, 7.2); //Motor voltage subject to change!
-FEHMotor right_motor(FEHMotor::Motor1, 7.2);
+FEHMotor left_motor(FEHMotor::Motor0, 12); //Motor voltage subject to change!
+FEHMotor right_motor(FEHMotor::Motor1, 12);
 FEHServo claw_servo(FEHServo::Servo1);
+
+//Sensor declaration
+AnalogInputPin Cds_cell(FEHIO::P0_0); //NO LIGHT: ~2.9  BLUE LIGHT: ~1.6 RED LIGHT: ~0.5
 
 //INTERFACE METHODS
 
@@ -51,6 +54,15 @@ void test() {
     LCD.Clear();
 }
 
+void calibrate() {
+    while (true) {
+        LCD.Clear();
+        LCD.Write("Cds cell value: ");
+        LCD.Write(Cds_cell.Value());
+        Sleep(200);
+    }
+}
+
 void menu() {
     // declare an array of four icons called menu
     FEHIcon::Icon iconMenu[4] = {};
@@ -83,7 +95,7 @@ void menu() {
             verboseMode = !verboseMode;
         } else if (iconMenu[3].Pressed(x, y, 1)) {
             LCD.Clear();
-            claw_servo.Calibrate();
+            calibrate();
         }
     }
 }
@@ -136,16 +148,16 @@ void setOrientation(float angle) {
         if (abs(RPS.Heading() - angle) < tolerance) {
             left_motor.Stop();
             right_motor.Stop();
-        } else if (angle < 180) {
-            if (RPS.Heading() - angle < 180) {
-                left_motor.SetPercent(DEFAULT_SPEED);
-                right_motor.SetPercent(-DEFAULT_SPEED);
-            } else {
+        } else if (RPS.Heading() < angle) {
+            if (angle > 180) {
                 left_motor.SetPercent(-DEFAULT_SPEED);
                 right_motor.SetPercent(DEFAULT_SPEED);
+            } else {
+                left_motor.SetPercent(DEFAULT_SPEED);
+                right_motor.SetPercent(-DEFAULT_SPEED);
             }
         } else {
-            if (RPS.Heading() - angle < 180) {
+            if (angle > 180) {
                 left_motor.SetPercent(DEFAULT_SPEED);
                 right_motor.SetPercent(-DEFAULT_SPEED);
             } else {
@@ -190,8 +202,13 @@ int main(void)
     menu();
     while(stayOn) {
         //General robot code goes here
-        moveForwardBackward(DEFAULT_SPEED, 1.0);
+        float cdsThreshold = 1;
+        /*while (Cds_cell.Value() < cdsThreshold) {
+            Sleep(100);
+        }*/
+
         //TODO: Test using level 1 methods navigation to the button and holding the button.  After that calibrate level 2 methods to ensure functionality.
+
     }
 
     return 0;
