@@ -6,7 +6,7 @@
 #include <FEHRPS.h>
 #include <math.h>
 
-#define DEFAULT_SPEED 10.0
+#define DEFAULT_SPEED 25.0
 #define RPS_TOLERANCE 0.5
 
 bool stayOn = true, verboseMode = false;
@@ -32,15 +32,19 @@ void test() {
     LCD.WriteLine("Moving left motor backward");
     Sleep(1.0);
 
+    left_motor.Stop();
+
     LCD.Clear();
     right_motor.SetPercent(DEFAULT_SPEED);
     LCD.WriteLine("Moving right motor forward");
     Sleep(1.0);
 
     LCD.Clear();
-    right_motor.SetPercent(DEFAULT_SPEED);
+    right_motor.SetPercent(-DEFAULT_SPEED);
     LCD.WriteLine("Movin right motor backward");
     Sleep(1.0);
+
+    right_motor.Stop();
 
     LCD.Clear();
     claw_servo.SetDegree(90);
@@ -55,14 +59,16 @@ void test() {
 }
 
 void calibrate() {
+    LCD.Clear();
+    float x, y;
     while (true) {
-        LCD.Clear();
-        LCD.Write("Cds cell value: ");
+        LCD.WriteLine("Cds cell value: ");
         LCD.Write(Cds_cell.Value());
+        LCD.WriteLine("\nTouch the screen to exit.");
+        if (LCD.Touch(&x, &y)) {break;}
         Sleep(200);
-        if (Cds_cell.Value() > 1) {
-            LCD.WriteLine("Ready to go!");
-        }
+        LCD.Clear();
+
     }
 }
 
@@ -78,6 +84,7 @@ void menu() {
     // with the menu labels, black borders, and white text
 
     bool exit = true;
+    LCD.Clear();
     while (exit) {
         FEHIcon::DrawIconArray(iconMenu, 2, 2, 10, 10, 5, 5, menu_labels, GOLD, GOLD);
         float x, y;
@@ -112,11 +119,13 @@ void menu() {
  * @param time Float value indicating how long to turn motors
  */
 void moveForwardBackward(float speed, float time) {
-    left_motor.SetPercent(speed * 100);
-    right_motor.SetPercent(speed * 100);
-    Sleep(time);
-    left_motor.SetPercent(0);
-    right_motor.SetPercent(0);
+    float start = TimeNow();
+    while (TimeNow() - start < time) {
+        left_motor.SetPercent(speed * 100);
+        right_motor.SetPercent(speed * 100);
+    }
+    left_motor.Stop();
+    right_motor.Stop();
 }
 
 /**
@@ -125,9 +134,11 @@ void moveForwardBackward(float speed, float time) {
  * @param time Float value determining the turn duration
  */
 void turnLeftRight(float speed, float time) {
-    left_motor.SetPercent(speed * 100);
-    right_motor.SetPercent(-speed * 100);
-    Sleep(time);
+    float start = TimeNow();
+    while (TimeNow() - start < time) {
+        left_motor.SetPercent(speed * 100);
+        right_motor.SetPercent(-speed * 100);
+    }
     left_motor.Stop();
     right_motor.Stop();
 }
@@ -145,9 +156,19 @@ bool inRPSRange() {
  * @param angle The angle to turn the robot towards
  */
 void setOrientation(float angle) {
-    const float tolerance = 3.0, time = 2.5;
+    const float tolerance = 3.0, time = 5.0;
     float start = TimeNow();
-    while (TimeNow() - start < time) {
+
+    while(true) {
+        LCD.Clear();
+        LCD.Write("Current RPS Heading: ");
+        LCD.Write(RPS.Heading());
+        LCD.WriteLine("Desired robot angle: ");
+        LCD.Write(angle);
+        Sleep(100);
+    }
+
+    /*while (TimeNow() - start < time) {
         if (abs(RPS.Heading() - angle) < tolerance) {
             left_motor.Stop();
             right_motor.Stop();
@@ -168,7 +189,7 @@ void setOrientation(float angle) {
                 right_motor.SetPercent(DEFAULT_SPEED);
             }
         }
-    }
+    }*/
 }
 
 /**
@@ -206,17 +227,26 @@ int main(void)
     LCD.SetFontColor(GOLD);
 
     menu();
-    while(stayOn) {
-        //General robot code goes here
-        float cdsThreshold = 1;
-        /*while (Cds_cell.Value() < cdsThreshold) {
-            Sleep(100);
-        }*/
 
-        //TODO: Test using level 1 methods navigation to the button and holding the button.  After that calibrate level 2 methods to ensure functionality.
+    while (Cds_cell.Value() > 1);
 
-    }
+    //TODO: Test using level 1 methods navigation to the button and holding the button.  After that calibrate level 2 methods to ensure functionality.
+    moveForwardBackward(-0.25, 1.65);
+    turnLeftRight(-0.24, 1.25); //90 degrees
+    moveForwardBackward(-0.25, 2.22);
+    turnLeftRight(-0.24, 1.25); //90 degrees
+    moveForwardBackward(-.35, 4);
+    turnLeftRight(0.25, 0.8);
+    moveForwardBackward(-0.25, 0.5);
+    turnLeftRight(-0.25, 1.0);
+    moveForwardBackward(-0.25, 3.0);
+    Sleep(5.0);
+    moveForwardBackward(0.25, 3.0);
+    turnLeftRight(-0.25, 1.25);
+    moveForwardBackward(-0.25, 3.0);
 
+    LCD.Clear();
+    LCD.WriteLine("Program Finished.\nReady to shutoff.");
     return 0;
 }
 
