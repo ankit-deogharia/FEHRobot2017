@@ -235,14 +235,19 @@ int main(void)
     turnLeftRight(-0.24, 1.25); //90 degrees
     moveForwardBackward(-0.25, 2.22);
     turnLeftRight(-0.24, 1.25); //90 degrees
-    moveForwardBackward(-.35, 4);
-    turnLeftRight(0.25, 0.8);
-    moveForwardBackward(-0.25, 0.5);
-    turnLeftRight(-0.25, 1.0);
-    moveForwardBackward(-0.25, 3.0);
-    Sleep(5.0);
+    moveForwardBackward(-.45, 4.5);
+    float start = TimeNow();
+    while (TimeNow() - start < 1) {
+        left_motor.SetPercent(-20.);
+    }
+    left_motor.Stop();
+    //turnLeftRight(-0.15, 0.45);
+    //moveForwardBackward(-0.25, 1);
+    //turnLeftRight(-0.25, 1.0);
+    //moveForwardBackward(-0.25, 1.5);
+    moveForwardBackward(-0.05, 5.0);
     moveForwardBackward(0.25, 3.0);
-    turnLeftRight(-0.25, 1.25);
+    turnLeftRight(-0.25, 1.1);
     moveForwardBackward(-0.25, 3.0);
 
     LCD.Clear();
